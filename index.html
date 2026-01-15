@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منشئ الحقائب التدريبية - نموذج أولي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+
+        /* تنسيق قسم الإدخال */
+        .editor-panel {
+            flex: 1;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-width: 300px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Cairo', sans-serif;
+            box-sizing: border-box; /* مهم لضبط العرض */
+        }
+
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        button.btn-generate {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button.btn-generate:hover {
+            background-color: var(--accent-color);
+        }
+
+        /* تنسيق ورقة الطباعة (A4 Simulation) */
+        .preview-panel {
+            flex: 1.5;
+            background: #525659; /* لون خلفية عارض الملفات */
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+        }
+
+        #pdf-content {
+            background: white;
+            width: 210mm; /* عرض A4 */
+            min-height: 297mm; /* ارتفاع A4 */
+            padding: 20mm;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* تنسيق المحتوى داخل الـ PDF */
+        .bag-header {
+            text-align: center;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .bag-header h1 {
+            color: var(--primary-color);
+            font-size: 28px;
+            margin: 0;
+        }
+
+        .bag-header p {
+            color: #777;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .section-title {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 15px;
+            font-size: 18px;
+            border-radius: 5px 0 5px 0;
+            margin-top: 25px;
+            display: inline-block;
+        }
+
+        .content-box {
+            margin-top: 10px;
+            line-height: 1.6;
+            text-align: justify;
+            border-right: 3px solid #eee;
+            padding-right: 15px;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 20mm;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+            width: 80%;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="editor-panel">
+        <h2 style="color: var(--accent-color);">🛠 إعداد الحقيبة التدريبية</h2>
+        
+        <div class="input-group">
+            <label>عنوان البرنامج التدريبي</label>
+            <input type="text" id="courseTitle" placeholder="مثلاً: مهارات التدريب الاحترافي" oninput="updatePreview()">
+        </div>
+
+        <div class="input-group">
+            <label>اسم المدرب</label>
+            <input type="text" id="trainerName" placeholder="أدخل اسمك هنا" oninput="updatePreview()">
+        </div>
+
+        <div class="input-group">
+            <label>تاريخ البرنامج</label>
+            <input type="date" id="courseDate" oninput="updatePreview()">
+        </div>
+
+        <hr>
+
+        <div class="input-group">
+            <label>الهدف العام للبرنامج</label>
+            <textarea id="generalGoal" placeholder="ما الذي سيحققه المتدرب بنهاية البرنامج؟" oninput="updatePreview()"></textarea>
+        </div>
+
+        <div class="input-group">
+            <label>الفئة المستهدفة</label>
+            <input type="text" id="targetAudience" placeholder="مثلاً: المعلمون، المدراء..." oninput="updatePreview()">
+        </div>
+
+        <div class="input-group">
+            <label>محاور الجلسة الأولى</label>
+            <textarea id="session1" placeholder="أدخل النقاط الرئيسية للجلسة الأولى..." oninput="updatePreview()"></textarea>
+        </div>
+
+        <button class="btn-generate" onclick="generatePDF()">📥 تحميل الحقيبة PDF</button>
+    </div>
+
+    <div class="preview-panel">
+        <div id="pdf-content">
+            
+            <div class="bag-header">
+                <h1 id="outTitle">عنوان البرنامج التدريبي</h1>
+                <p>إعداد المدرب: <span id="outTrainer">---</span> | التاريخ: <span id="outDate">---</span></p>
+            </div>
+
+            <div>
+                <div class="section-title">📌 الهدف العام</div>
+                <div class="content-box" id="outGoal">
+                    سيظهر الهدف العام هنا...
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">👥 الفئة المستهدفة</div>
+                <div class="content-box" id="outAudience">
+                    ستظهر الفئة المستهدفة هنا...
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">📖 محتوى الجلسة الأولى</div>
+                <div class="content-box" id="outSession1">
+                    المحتوى التدريبي سيظهر هنا بشكل منسق...
+                </div>
+            </div>
+
+            <div class="footer">
+                تم إنشاء هذه الحقيبة عبر منصة أدوات المدرب الذكية | جميع الحقوق محفوظة
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // دالة تحديث المعاينة الفورية
+    function updatePreview() {
+        document.getElementById('outTitle').innerText = document.getElementById('courseTitle').value || 'عنوان البرنامج التدريبي';
+        document.getElementById('outTrainer').innerText = document.getElementById('trainerName').value || '---';
+        document.getElementById('outDate').innerText = document.getElementById('courseDate').value || '---';
+        
+        document.getElementById('outGoal').innerText = document.getElementById('generalGoal').value || '...';
+        document.getElementById('outAudience').innerText = document.getElementById('targetAudience').value || '...';
+        
+        // تحويل الأسطر الجديدة في النص إلى فواصل HTML
+        document.getElementById('outSession1').innerHTML = document.getElementById('session1').value.replace(/\n/g, '<br>') || '...';
+    }
+
+    // دالة توليد ملف الـ PDF
+    function generatePDF() {
+        const element = document.getElementById('pdf-content');
+        const opt = {
+            margin:       0, // الهوامش صفر لأننا ضبطنا البادينغ في الـ CSS
+            filename:     'حقيبة_تدريبية.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 }, // دقة عالية
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // استدعاء المكتبة
+        html2pdf().set(opt).from(element).save();
+    }
+</script>
+
+</body>
+</html>
