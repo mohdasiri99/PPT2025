@@ -3,389 +3,416 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منشئ الحقائب التدريبية المتكامل</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>صانع الحقائب التدريبية - النسخة الاحترافية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
         :root {
             --primary: #2c3e50;
-            --secondary: #16a085;
-            --accent: #d35400;
-            --bg: #ecf0f1;
-            --table-head: #34495e;
+            --secondary: #1abc9c;
+            --accent: #e74c3c;
+            --bg: #f0f2f5;
+            --text: #333;
         }
 
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); margin: 0; padding: 10px; font-size: 14px; }
-        
-        .main-container { display: flex; gap: 15px; height: 95vh; }
-        
-        /* --- لوحة التحكم --- */
-        .control-panel { 
-            width: 38%; 
-            background: white; 
-            padding: 15px; 
-            border-radius: 8px; 
-            overflow-y: auto; 
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        * { box-sizing: border-box; }
+
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            padding: 0; 
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
         }
-
-        h3, h4 { color: var(--primary); margin: 10px 0; border-bottom: 2px solid var(--secondary); padding-bottom: 5px; }
         
-        .input-group { margin-bottom: 8px; }
-        label { display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px; color: #555; }
-        input, textarea, select { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: 'Cairo'; font-size: 12px;}
-        textarea { height: 50px; resize: vertical; }
-
-        /* تنسيق الأكورديون للأيام */
-        details { background: #f8f9fa; margin-bottom: 5px; border-radius: 4px; border: 1px solid #ddd; }
-        summary { padding: 10px; cursor: pointer; font-weight: bold; background: #e9ecef; color: var(--primary); list-style: none; }
-        summary::after { content: '+'; float: left; font-weight: bold; }
-        details[open] summary::after { content: '-'; }
-        .day-content { padding: 10px; }
-        
-        .axis-row { display: grid; grid-template-columns: 2fr 1fr 1fr 0.5fr; gap: 5px; margin-bottom: 5px; border-bottom: 1px dotted #ccc; padding-bottom: 2px; }
-        .axis-row input { font-size: 10px; }
-
-        button { width: 100%; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-family: 'Cairo'; font-weight: bold; margin-top: 5px; }
-        .btn-add { background: var(--secondary); color: white; }
-        .btn-print { background: var(--primary); color: white; font-size: 16px; position: sticky; bottom: 0; margin-top: 20px; box-shadow: 0 -2px 5px rgba(0,0,0,0.1); }
-        .btn-del { background: #c0392b; color: white; width: auto; padding: 2px 8px; font-size: 10px; float: left; }
-
-        /* --- منطقة المعاينة --- */
-        .preview-area { 
-            width: 62%; 
-            background: #525659; 
-            padding: 20px; 
-            overflow-y: auto; 
-            display: flex; 
-            justify-content: center; 
-        }
-
-        #printable-content {
+        /* --- لوحة التحكم (يسار) --- */
+        .sidebar {
+            width: 350px;
             background: white;
-            width: 210mm; 
-            min-height: 297mm;
-            padding: 10mm;
-            box-sizing: border-box;
+            padding: 20px;
+            overflow-y: auto;
+            border-left: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 10;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
         }
 
-        /* --- تنسيقات الطباعة الداخلية --- */
-        .page-break { page-break-before: always; }
-        .cover-page { text-align: center; min-height: 270mm; border: 5px double var(--primary); padding: 20px; margin-bottom: 20px;}
-        
-        .main-title { font-size: 36px; color: var(--primary); margin-top: 40mm; font-weight: 800; }
-        .sub-info { font-size: 18px; margin-top: 10px; color: #666; }
-        
-        .goals-section { text-align: right; margin-top: 30mm; padding: 20px; }
-        .goals-box { border: 2px solid var(--secondary); border-radius: 10px; padding: 15px; background: #fdfdfd; }
-        .goals-list li { margin-bottom: 8px; font-size: 14px; }
+        .section-header {
+            background: var(--primary);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
 
-        /* تنسيق الجداول الزمنية */
-        .schedule-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px; page-break-inside: avoid; }
-        .schedule-table th, .schedule-table td { border: 1px solid #333; padding: 5px; text-align: center; }
-        .schedule-table th { background-color: var(--table-head); color: white; }
-        .schedule-header { background-color: #ecf0f1; font-weight: bold; text-align: right !important; }
-        .break-row { background-color: #ffeaa7; font-weight: bold; }
-        .activity-row { background-color: #a8dadc; font-weight: bold; }
+        label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input, textarea, select { 
+            width: 100%; 
+            padding: 8px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            font-family: 'Cairo'; 
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        textarea { height: 60px; resize: vertical; }
+
+        /* الأزرار */
+        .btn { width: 100%; padding: 10px; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; color: white; margin-top: 5px; font-family: 'Cairo'; }
+        .btn-green { background: var(--secondary); }
+        .btn-blue { background: var(--primary); font-size: 16px; margin-top: auto; } /* زر الطباعة في الأسفل */
+        .btn-red { background: var(--accent); width: auto; font-size: 10px; padding: 5px; }
+
+        /* الأكورديون */
+        details { background: #f8f9fa; border: 1px solid #eee; border-radius: 5px; margin-bottom: 5px; }
+        summary { padding: 10px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .details-content { padding: 10px; }
+
+        /* --- منطقة المعاينة (يمين) --- */
+        .preview-area {
+            flex: 1;
+            background: #525659;
+            overflow-y: auto;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* --- محاكاة الورقة (Sheet) --- */
+        /* A4 size is 210mm x 297mm */
+        .sheet {
+            background: white;
+            width: 210mm;
+            min-height: 297mm; /* ارتفاع أدنى */
+            padding: 20mm; /* الهوامش الفيزيائية للصفحة */
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden; /* لمنع خروج العناصر */
+            page-break-after: always; /* فاصل صفحات إجباري */
+        }
+
+        /* هذا الكلاس يجمع كل الصفحات بداخله لغرض الـ PDF */
+        #pdf-container {
+            width: 210mm;
+        }
+
+        /* --- تنسيقات داخلية للصفحات --- */
         
-        /* تنسيق الوحدات */
-        .unit-section { border-top: 2px solid var(--primary); padding-top: 20px; margin-top: 20px; }
-        .block-title { background: var(--secondary); color: white; display: inline-block; padding: 3px 10px; border-radius: 3px; margin-bottom: 5px; font-size: 14px; }
-        .text-body { text-align: justify; line-height: 1.5; font-size: 12px; margin-bottom: 15px; white-space: pre-wrap; }
+        /* صفحة الغلاف */
+        .cover-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 250mm;
+            border: 3px double var(--primary);
+            padding: 20px;
+        }
+        .cover-title { font-size: 40px; color: var(--primary); margin-bottom: 50px; text-align: center; }
+        .cover-meta { font-size: 22px; color: #555; text-align: center; line-height: 2; }
+
+        /* صفحة المقدمة */
+        .intro-title { border-bottom: 2px solid var(--secondary); padding-bottom: 10px; color: var(--primary); margin-bottom: 30px; }
+        .intro-text { font-size: 16px; line-height: 1.8; text-align: justify; }
+
+        /* صفحة الأهداف */
+        .goals-box { background: #fdfdfd; border: 1px solid #eee; padding: 20px; border-radius: 10px; }
+        .main-goal { font-size: 18px; color: var(--primary); font-weight: bold; margin-bottom: 20px; border-right: 5px solid var(--secondary); padding-right: 15px; }
+        .sub-goals-list { list-style: none; padding: 0; }
+        .sub-goals-list li { margin-bottom: 12px; font-size: 15px; position: relative; padding-right: 25px; }
+        .sub-goals-list li::before { content: '✔'; position: absolute; right: 0; color: var(--secondary); }
+
+        /* الجداول */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
+        th, td { border: 1px solid #333; padding: 8px; text-align: center; font-size: 12px; word-wrap: break-word; }
+        th { background: #eee; }
+        
+        /* عناوين الصفحات */
+        .page-header { text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 30px; margin-top: 10px; }
+
+        /* صفحة تم بحمد الله */
+        .end-page { display: flex; justify-content: center; align-items: center; height: 250mm; }
+        .end-text { font-size: 40px; color: var(--primary); font-family: 'Amiri', serif; }
 
     </style>
 </head>
 <body>
 
-<div class="main-container">
-    
-    <div class="control-panel">
-        <h3>1. البيانات الأساسية</h3>
-        <label>عنوان البرنامج</label>
-        <input type="text" id="inTitle" oninput="updateAll()">
-        <div style="display:flex; gap:5px;">
-            <div style="flex:2"><label>اسم المدرب</label><input type="text" id="inTrainer" oninput="updateAll()"></div>
-            <div style="flex:1"><label>العام</label><input type="text" id="inYear" placeholder="2026" oninput="updateAll()"></div>
+<div class="sidebar">
+    <h2 style="text-align:center; margin:0; color:var(--primary)">إعدادات الحقيبة</h2>
+
+    <details open>
+        <summary>1. الغلاف والمقدمة</summary>
+        <div class="details-content">
+            <label>عنوان البرنامج</label><input type="text" id="inTitle" oninput="render()">
+            <label>اسم المدرب</label><input type="text" id="inTrainer" oninput="render()">
+            <label>العام التدريبي</label><input type="text" id="inYear" placeholder="2024" oninput="render()">
+            <hr>
+            <label>مقدمة الحقيبة</label>
+            <textarea id="inIntro" placeholder="اكتب مقدمة ترحيبية..." oninput="render()"></textarea>
         </div>
-        
-        <label>الهدف الرئيسي</label>
-        <textarea id="inMainGoal" oninput="updateAll()"></textarea>
+    </details>
 
-        <label>الأهداف التفصيلية (7 كحد أقصى)</label>
-        <div id="objectives-inputs">
-            </div>
-
-        <h3>2. الجدول الزمني (5 أيام)</h3>
-        <div id="schedule-inputs">
-            </div>
-
-        <h3>3. تفاصيل الوحدات التدريبية</h3>
-        <div id="units-control"></div>
-        <button class="btn-add" onclick="addNewUnit()">+ إضافة مادة علمية لوحدة جديدة</button>
-        
-        <br><br>
-        <button class="btn-print" onclick="generatePDF()">📥 تحميل وطباعة الحقيبة</button>
-    </div>
-
-    <div class="preview-area">
-        <div id="printable-content">
-            
-            <div class="cover-page">
-                <br><br>
-                <img src="https://cdn-icons-png.flaticon.com/512/3426/3426653.png" width="100" style="opacity:0.6">
-                <h1 class="main-title" id="outTitle">عنوان البرنامج التدريبي</h1>
-                <div class="sub-info">
-                    <p>إعداد المدرب: <span id="outTrainer">...</span></p>
-                    <p>العام: <span id="outYear">...</span></p>
-                </div>
-
-                <div class="goals-section">
-                    <div class="goals-box">
-                        <h3 style="margin-top:0; color:var(--secondary)">🎯 الهدف الرئيسي:</h3>
-                        <p id="outMainGoal">...</p>
-                        <hr style="border:0; border-top:1px dashed #ccc">
-                        <h4>الأهداف التفصيلية:</h4>
-                        <ul class="goals-list" id="outObjectives"></ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="page-break"></div>
-
-            <h2 style="text-align:center; color:var(--primary); border-bottom:3px solid var(--accent); display:inline-block;">📅 الخطة الزمنية للبرنامج</h2>
-            <br><br>
-            <div id="outSchedule"></div>
-
-            <div class="page-break"></div>
-            <h2 style="text-align:center; margin-top:20px;">📚 المحتوى التفصيلي للحقيبة</h2>
-            <div id="outUnits"></div>
-
+    <details>
+        <summary>2. الأهداف</summary>
+        <div class="details-content">
+            <label>الهدف العام</label><textarea id="inMainGoal" oninput="render()"></textarea>
+            <label>الأهداف التفصيلية (7)</label>
+            <div id="goals-inputs"></div>
         </div>
+    </details>
+
+    <details>
+        <summary>3. الجدول الزمني (5 أيام)</summary>
+        <div class="details-content" id="schedule-inputs"></div>
+    </details>
+
+    <div id="units-control"></div>
+    <button class="btn btn-green" onclick="addUnit()">+ وحدة جديدة</button>
+
+    <details>
+        <summary>5. الخاتمة والمراجع</summary>
+        <div class="details-content">
+            <label>نص الخاتمة</label><textarea id="inConclusion" oninput="render()"></textarea>
+            <label>المراجع</label><textarea id="inRefs" placeholder="اكتب كل مرجع في سطر" oninput="render()"></textarea>
+        </div>
+    </details>
+
+    <button class="btn btn-blue" onclick="printPDF()">📥 طباعة (PDF)</button>
+</div>
+
+<div class="preview-area">
+    <div id="pdf-container">
+        
+        <div class="sheet">
+            <div class="cover-content">
+                <h1 class="cover-title" id="outTitle">عنوان البرنامج</h1>
+                <div class="cover-meta">
+                    <p>إعداد المدرب: <span id="outTrainer">---</span></p>
+                    <p>العام: <span id="outYear">---</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="sheet">
+            <h2 class="intro-title">مقدمة البرنامج</h2>
+            <div class="intro-text" id="outIntro">...</div>
+        </div>
+
+        <div class="sheet">
+            <h2 class="intro-title">أهداف البرنامج</h2>
+            <div class="goals-box">
+                <div class="main-goal">🎯 الهدف العام:<br><span id="outMainGoal" style="font-weight:normal; font-size:16px;">...</span></div>
+                <hr style="border:0; border-top:1px dashed #ccc; margin:20px 0;">
+                <h4>الأهداف التفصيلية:</h4>
+                <ul class="sub-goals-list" id="outSubGoals"></ul>
+            </div>
+        </div>
+
+        <div id="schedule-sheets"></div>
+
+        <div id="units-sheets"></div>
+
+        <div class="sheet">
+            <h2 class="intro-title">الخاتمة</h2>
+            <div class="intro-text" id="outConclusion">...</div>
+        </div>
+
+        <div class="sheet">
+            <h2 class="intro-title">المراجع والمصادر</h2>
+            <div class="intro-text" id="outRefs">...</div>
+        </div>
+
+        <div class="sheet">
+            <div class="end-page">
+                <div class="end-text">تم بحمد الله</div>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <script>
-    // --- تهيئة الصفحة ---
+    // تهيئة البيانات
+    const daysCount = 5;
+    let unitCount = 0;
+    
+    // عند التحميل
     window.onload = function() {
-        generateObjectivesInputs();
-        generateScheduleInputs();
-        addNewUnit(); // وحدة افتراضية واحدة
+        createGoalInputs();
+        createScheduleInputs();
+        addUnit(); // وحدة افتراضية
+        render(); // تحديث أولي
     };
 
-    // --- 1. الأهداف ---
-    function generateObjectivesInputs() {
+    function createGoalInputs() {
         let html = '';
-        for(let i=1; i<=7; i++) {
-            html += `<input type="text" class="obj-in" id="obj${i}" placeholder="الهدف ${i}" oninput="updateAll()" style="margin-bottom:2px">`;
-        }
-        document.getElementById('objectives-inputs').innerHTML = html;
+        for(let i=1; i<=7; i++) html += `<input type="text" id="g${i}" placeholder="هدف ${i}" oninput="render()" style="margin-bottom:5px">`;
+        document.getElementById('goals-inputs').innerHTML = html;
     }
 
-    // --- 2. بناء مدخلات الجدول الزمني (معقد قليلاً) ---
-    const days = 5;
-    const axesPerSession = 5;
-
-    function generateScheduleInputs() {
+    function createScheduleInputs() {
         let container = document.getElementById('schedule-inputs');
-        
-        for(let d=1; d<=days; d++) {
+        for(let d=1; d<=daysCount; d++) {
             let details = document.createElement('details');
-            let summary = document.createElement('summary');
-            summary.innerText = `اليوم التدريبي ${d}`;
-            details.appendChild(summary);
-
-            let content = document.createElement('div');
-            content.className = 'day-content';
-
-            // دالة مساعدة لرسم صفوف المحاور
-            const createSessionInputs = (sessionNum) => {
-                let html = `<h5 style="margin:5px 0">الجلسة ${sessionNum}</h5>`;
-                html += `<div style="display:flex; font-size:10px; font-weight:bold; margin-bottom:3px;">
-                            <span style="flex:2">المحور</span>
-                            <span style="flex:1">الأسلوب</span>
-                            <span style="flex:1">الأدوات</span>
-                            <span style="flex:0.5">الزمن</span>
-                         </div>`;
-                for(let i=1; i<=axesPerSession; i++) {
-                    html += `
-                    <div class="axis-row">
-                        <input type="text" class="sch-in" id="d${d}_s${sessionNum}_a${i}_topic" oninput="updateSchedule(${d})">
-                        <input type="text" class="sch-in" id="d${d}_s${sessionNum}_a${i}_method" oninput="updateSchedule(${d})">
-                        <input type="text" class="sch-in" id="d${d}_s${sessionNum}_a${i}_tools" oninput="updateSchedule(${d})">
-                        <input type="text" class="sch-in" id="d${d}_s${sessionNum}_a${i}_time" oninput="updateSchedule(${d})">
-                    </div>`;
-                }
-                return html;
-            };
-
-            content.innerHTML = createSessionInputs(1) + 
-                                `<div style="background:#eee; padding:5px; text-align:center; font-size:11px; margin:5px 0;">☕ استراحة 20 دقيقة</div>` + 
-                                createSessionInputs(2) + 
-                                `<label>نشاط تطبيقي (30 د)</label><input type="text" id="d${d}_activity" oninput="updateSchedule(${d})">` +
-                                `<label>الختام</label><input type="text" id="d${d}_closing" value="مراجعة وإثراء" oninput="updateSchedule(${d})">`;
-            
-            details.appendChild(content);
+            details.innerHTML = `<summary>اليوم ${d}</summary><div class="details-content" id="day-inputs-${d}"></div>`;
             container.appendChild(details);
+
+            let content = details.querySelector('.details-content');
             
-            // إنشاء هيكل الجدول الفارغ في المعاينة
-            createScheduleTableInPreview(d);
+            // توليد مدخلات الجلستين
+            for(let s=1; s<=2; s++) {
+                content.innerHTML += `<div style="background:#eee; padding:5px; margin-top:5px; font-weight:bold;">الجلسة ${s}</div>`;
+                for(let row=1; row<=5; row++) {
+                    content.innerHTML += `
+                        <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 0.5fr; gap:2px; margin-top:2px;">
+                            <input class="d${d}s${s}r${row}_topic" placeholder="محور" oninput="render()">
+                            <input class="d${d}s${s}r${row}_method" placeholder="أسلوب" oninput="render()">
+                            <input class="d${d}s${s}r${row}_tool" placeholder="أدوات" oninput="render()">
+                            <input class="d${d}s${s}r${row}_time" placeholder="زمن" oninput="render()">
+                        </div>
+                    `;
+                }
+            }
         }
     }
 
-    function createScheduleTableInPreview(dayNum) {
-        const div = document.createElement('div');
-        div.id = `outTable_d${dayNum}`;
-        document.getElementById('outSchedule').appendChild(div);
-        updateSchedule(dayNum); // رسم الجدول فارغاً
-    }
-
-    // تحديث جدول يوم محدد
-    function updateSchedule(d) {
-        let html = `
-        <table class="schedule-table">
-            <thead>
-                <tr>
-                    <th colspan="4" class="schedule-header">اليوم التدريبي: ${d}</th>
-                </tr>
-                <tr>
-                    <th colspan="4" style="background:#ddd; text-align:right">الجلسة الأولى (90 دقيقة)</th>
-                </tr>
-                <tr>
-                    <th width="40%">المحور</th>
-                    <th width="25%">الأسلوب التدريبي</th>
-                    <th width="25%">الأدوات التدريبية</th>
-                    <th width="10%">الزمن</th>
-                </tr>
-            </thead>
-            <tbody>`;
-            
-        // الجلسة 1
-        for(let i=1; i<=5; i++) {
-            html += getRowHTML(d, 1, i);
-        }
-
-        // الاستراحة
-        html += `<tr class="break-row"><td colspan="4">استراحة (20 دقيقة)</td></tr>`;
-
-        // الجلسة 2
-        html += `<tr><th colspan="4" style="background:#ddd; text-align:right">الجلسة الثانية (90 دقيقة)</th></tr>`;
-        for(let i=1; i<=5; i++) {
-            html += getRowHTML(d, 2, i);
-        }
-
-        // النشاط والختام
-        let act = document.getElementById(`d${d}_activity`).value || '...';
-        let close = document.getElementById(`d${d}_closing`).value || 'مراجعة وإثراء';
-
-        html += `<tr class="activity-row"><td colspan="2">نشاط تطبيقي (30 دقيقة)</td><td colspan="2">${act}</td></tr>`;
-        html += `<tr><td colspan="2" style="font-weight:bold">ختام اليوم</td><td colspan="2">${close}</td></tr>`;
+    // إضافة وحدة جديدة
+    function addUnit() {
+        unitCount++;
+        // المدخلات
+        let div = document.createElement('div');
+        div.className = 'section-header';
+        div.style.background = '#7f8c8d';
+        div.style.marginTop = '10px';
+        div.innerHTML = `وحدة ${unitCount} <button class="btn-red" onclick="this.parentElement.nextElementSibling.remove(); this.parentElement.remove(); render();">حذف</button>`;
         
-        html += `</tbody></table>`;
+        let inputs = document.createElement('div');
+        inputs.className = 'unit-input-group';
+        inputs.dataset.id = unitCount;
+        inputs.innerHTML = `
+            <input type="text" class="u-title" placeholder="عنوان الوحدة" oninput="render()">
+            <textarea class="u-content" placeholder="المادة العلمية" oninput="render()"></textarea>
+            <textarea class="u-act" placeholder="النشاط" oninput="render()"></textarea>
+            <textarea class="u-eval" placeholder="التقييم" oninput="render()"></textarea>
+            <textarea class="u-extra" placeholder="إثراء" oninput="render()"></textarea>
+        `;
         
-        document.getElementById(`outTable_d${d}`).innerHTML = html;
+        document.getElementById('units-control').appendChild(div);
+        document.getElementById('units-control').appendChild(inputs);
+        render();
     }
 
-    function getRowHTML(d, s, a) {
-        let topic = document.getElementById(`d${d}_s${s}_a${a}_topic`).value;
-        let method = document.getElementById(`d${d}_s${s}_a${a}_method`).value;
-        let tools = document.getElementById(`d${d}_s${s}_a${a}_tools`).value;
-        let time = document.getElementById(`d${d}_s${s}_a${a}_time`).value;
-
-        // إذا كانت الخانة فارغة نعرض نقاطاً
-        return `<tr>
-            <td>${topic || '................................'}</td>
-            <td>${method || '................'}</td>
-            <td>${tools || '................'}</td>
-            <td>${time || '...'}</td>
-        </tr>`;
-    }
-
-    // --- 3. التحديث العام (الغلاف) ---
-    function updateAll() {
+    // دالة التحديث الرئيسية (Render)
+    function render() {
+        // 1. الغلاف والمقدمة
         document.getElementById('outTitle').innerText = document.getElementById('inTitle').value || 'العنوان';
         document.getElementById('outTrainer').innerText = document.getElementById('inTrainer').value || '---';
         document.getElementById('outYear').innerText = document.getElementById('inYear').value || '---';
-        document.getElementById('outMainGoal').innerText = document.getElementById('inMainGoal').value || '...';
-
-        let objHtml = '';
-        for(let i=1; i<=7; i++) {
-            let val = document.getElementById(`obj${i}`).value;
-            if(val) objHtml += `<li>${val}</li>`;
-        }
-        document.getElementById('outObjectives').innerHTML = objHtml;
-    }
-
-    // --- 4. إدارة الوحدات (المادة العلمية) ---
-    let unitCount = 0;
-    function addNewUnit() {
-        unitCount++;
-        // إضافة المدخلات
-        const div = document.createElement('div');
-        div.className = 'unit-form';
-        div.innerHTML = `
-            <div style="border-top:1px solid #ccc; margin-top:10px; padding-top:10px;">
-                <label style="color:var(--secondary)">عنوان الوحدة رقم ${unitCount}</label>
-                <input type="text" id="u${unitCount}_title" oninput="upUnit(${unitCount})">
-                <label>المادة العلمية</label><textarea id="u${unitCount}_content" oninput="upUnit(${unitCount})"></textarea>
-                <label>النشاط</label><textarea id="u${unitCount}_act" oninput="upUnit(${unitCount})"></textarea>
-                <label>التقييم</label><textarea id="u${unitCount}_eval" oninput="upUnit(${unitCount})"></textarea>
-                <label>الإثراء</label><textarea id="u${unitCount}_extra" oninput="upUnit(${unitCount})"></textarea>
-            </div>
-        `;
-        document.getElementById('units-control').appendChild(div);
-
-        // إضافة العرض
-        const view = document.createElement('div');
-        view.className = 'unit-section page-break'; // نبدأ صفحة جديدة لكل وحدة
-        view.id = `view_unit_${unitCount}`;
-        view.innerHTML = `
-            <h2 id="v${unitCount}_title" style="background:var(--primary); color:white; padding:5px 10px;">الوحدة ${unitCount}</h2>
-            
-            <span class="block-title">المادة العلمية</span>
-            <div class="text-body" id="v${unitCount}_content"></div>
-
-            <span class="block-title" style="background:var(--accent)">النشاط التدريبي</span>
-            <div class="text-body" id="v${unitCount}_act"></div>
-
-            <span class="block-title" style="background:#8e44ad">التقييم</span>
-            <div class="text-body" id="v${unitCount}_eval"></div>
-            
-            <span class="block-title" style="background:#27ae60">إثراء</span>
-            <div class="text-body" id="v${unitCount}_extra"></div>
-        `;
-        document.getElementById('outUnits').appendChild(view);
-    }
-
-    function upUnit(id) {
-        document.getElementById(`v${id}_title`).innerText = document.getElementById(`u${id}_title`).value || `الوحدة ${id}`;
-        document.getElementById(`v${id}_content`).innerText = document.getElementById(`u${id}_content`).value;
-        document.getElementById(`v${id}_act`).innerText = document.getElementById(`u${id}_act`).value;
-        document.getElementById(`v${id}_eval`).innerText = document.getElementById(`u${id}_eval`).value;
-        document.getElementById(`v${id}_extra`).innerText = document.getElementById(`u${id}_extra`).value;
-    }
-
-    // --- الطباعة ---
-    function generatePDF() {
-        const element = document.getElementById('printable-content');
-        const opt = {
-            margin: 10,
-            filename: 'الحقيبة_التدريبية.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: ['css', 'legacy'] }
-        };
+        document.getElementById('outIntro').innerHTML = document.getElementById('inIntro').value.replace(/\n/g, '<br>') || '...';
         
-        html2pdf().from(element).set(opt).toPdf().get('pdf').then(function (pdf) {
-            var totalPages = pdf.internal.getNumberOfPages();
-            for (i = 1; i <= totalPages; i++) {
-                pdf.setPage(i);
-                pdf.setFontSize(9);
-                pdf.setTextColor(150);
-                pdf.text('صفحة ' + i + ' من ' + totalPages, pdf.internal.pageSize.getWidth()/2, pdf.internal.pageSize.getHeight()-10, {align: 'center'});
-            }
-        }).save();
+        // 2. الأهداف
+        document.getElementById('outMainGoal').innerText = document.getElementById('inMainGoal').value || '...';
+        let goalsHtml = '';
+        for(let i=1; i<=7; i++) {
+            let val = document.getElementById(`g${i}`).value;
+            if(val) goalsHtml += `<li>${val}</li>`;
+        }
+        document.getElementById('outSubGoals').innerHTML = goalsHtml;
+
+        // 3. الجدول الزمني (بناء صفحات الأيام)
+        let scheduleHtml = '';
+        for(let d=1; d<=daysCount; d++) {
+            scheduleHtml += `<div class="sheet">
+                <div class="page-header"><h2>اليوم التدريبي: ${d}</h2></div>
+                ${buildDayTable(d)}
+            </div>`;
+        }
+        document.getElementById('schedule-sheets').innerHTML = scheduleHtml;
+
+        // 4. الوحدات
+        let unitsHtml = '';
+        document.querySelectorAll('.unit-input-group').forEach((grp, index) => {
+            let uId = index + 1;
+            let title = grp.querySelector('.u-title').value || `الوحدة ${uId}`;
+            let content = grp.querySelector('.u-content').value.replace(/\n/g, '<br>');
+            let act = grp.querySelector('.u-act').value.replace(/\n/g, '<br>');
+            let eval = grp.querySelector('.u-eval').value.replace(/\n/g, '<br>');
+            let extra = grp.querySelector('.u-extra').value.replace(/\n/g, '<br>');
+
+            unitsHtml += `
+            <div class="sheet">
+                <div class="page-header"><h2>${title}</h2></div>
+                
+                <h4 style="color:var(--secondary)">المادة العلمية:</h4>
+                <div style="text-align:justify; margin-bottom:20px;">${content}</div>
+                
+                <h4 style="color:var(--accent)">النشاط التدريبي:</h4>
+                <div style="background:#f9f9f9; padding:10px; border:1px dashed #ccc; margin-bottom:20px;">${act}</div>
+
+                <h4 style="color:#8e44ad">التقييم:</h4>
+                <div>${eval}</div>
+                
+                <hr>
+                <h4 style="color:#27ae60">إثراء:</h4>
+                <div>${extra}</div>
+            </div>`;
+        });
+        document.getElementById('units-sheets').innerHTML = unitsHtml;
+
+        // 5. الخاتمة والمراجع
+        document.getElementById('outConclusion').innerHTML = document.getElementById('inConclusion').value.replace(/\n/g, '<br>') || '...';
+        document.getElementById('outRefs').innerHTML = document.getElementById('inRefs').value.replace(/\n/g, '<br>') || '...';
+    }
+
+    function buildDayTable(d) {
+        let html = `<table><thead><tr><th width="40%">المحور</th><th>الأسلوب</th><th>الأدوات</th><th width="10%">الزمن</th></tr></thead><tbody>`;
+        
+        // جلسة 1
+        html += `<tr><td colspan="4" style="background:#ddd; font-weight:bold;">الجلسة الأولى</td></tr>`;
+        for(let r=1; r<=5; r++) html += getRow(d, 1, r);
+        
+        // استراحة
+        html += `<tr><td colspan="4" style="background:#ffeaa7; font-weight:bold;">☕ استراحة 20 دقيقة</td></tr>`;
+
+        // جلسة 2
+        html += `<tr><td colspan="4" style="background:#ddd; font-weight:bold;">الجلسة الثانية</td></tr>`;
+        for(let r=1; r<=5; r++) html += getRow(d, 2, r);
+
+        html += `</tbody></table>`;
+        return html;
+    }
+
+    function getRow(d, s, r) {
+        let inputs = document.querySelectorAll(`#day-inputs-${d} input`);
+        // Note: Direct selection is tricky inside loop, simplified logic:
+        // We use class selectors we added earlier
+        let topic = document.querySelector(`.d${d}s${s}r${r}_topic`)?.value || '';
+        let method = document.querySelector(`.d${d}s${s}r${r}_method`)?.value || '';
+        let tool = document.querySelector(`.d${d}s${s}r${r}_tool`)?.value || '';
+        let time = document.querySelector(`.d${d}s${s}r${r}_time`)?.value || '';
+
+        return `<tr><td>${topic}</td><td>${method}</td><td>${tool}</td><td>${time}</td></tr>`;
+    }
+
+    function printPDF() {
+        const element = document.getElementById('pdf-container');
+        const opt = {
+            margin:       0, // الهوامش صفر لأننا صممنا الـ Sheet بهوامش داخلية
+            filename:     'training_bag_pro.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, scrollY: 0 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().from(element).set(opt).save();
     }
 </script>
 
