@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منشئ الحقائب الاحترافي - نسخة محمد عسيري</title>
+    <title>منشئ الحقائب الاحترافي - الإصدار الماسي</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -17,7 +17,7 @@
             --accent: #d35400;
             --bg: #eef2f3;
             --cover-bg: #ffffff;
-            --sidebar-width: 550px;
+            --sidebar-width: 500px;
         }
 
         * { box-sizing: border-box; }
@@ -53,14 +53,8 @@
 
         /* --- حقوق التصميم --- */
         .credits {
-            text-align: center;
-            font-size: 12px;
-            color: #7f8c8d;
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border: 1px dashed #ccc;
+            text-align: center; font-size: 12px; color: #7f8c8d; background: #f8f9fa;
+            padding: 10px; border-radius: 5px; margin-bottom: 20px; border: 1px dashed #ccc;
         }
 
         /* --- منطقة المعاينة --- */
@@ -75,12 +69,12 @@
             min-height: 100vh;
         }
 
-        /* --- الورقة --- */
+        /* --- الورقة (Sheet) --- */
         .sheet {
             background: white;
             width: 210mm;
             min-height: 297mm;
-            padding: 20mm;
+            padding: 25mm 20mm; /* هوامش الطباعة: أعلى/أسفل 2.5سم، يمين/يسار 2سم */
             margin-bottom: 30px;
             box-shadow: 0 0 15px rgba(0,0,0,0.3);
             position: relative;
@@ -90,15 +84,25 @@
             flex-direction: column;
         }
 
-        /* --- التجاوب --- */
-        @media (max-width: 1100px) {
-            .app-container { flex-direction: column; }
-            .editor-sidebar { width: 100%; height: auto; position: relative; border-left: none; padding-bottom: 60px; }
-            .preview-area { width: 100%; margin-right: 0; padding: 10px; overflow-x: auto; }
-            .sheet { transform: scale(0.9); transform-origin: top center; margin-bottom: 10px; }
+        /* --- تحسين النصوص (Justification) --- */
+        .justified-text {
+            text-align: justify;
+            text-justify: inter-word; /* محاولة توزيع المسافات */
+            line-height: 1.8; /* تباعد أسطر مريح */
+            font-size: 16px;
         }
 
-        /* --- المدخلات --- */
+        .styled-list { list-style: none; padding: 0; margin: 0; }
+        .styled-list li { 
+            margin-bottom: 12px; 
+            padding-right: 25px; 
+            position: relative; 
+            text-align: justify; 
+            line-height: 1.6;
+        }
+        .styled-list li::before { content: '✔'; position: absolute; right: 0; color: var(--secondary); font-weight: bold; }
+
+        /* --- تنسيقات أخرى --- */
         label { display: block; margin-top: 15px; margin-bottom: 8px; font-weight: bold; font-size: 15px; color: var(--primary); }
         input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-family: 'Cairo'; font-size: 14px; background: #fcfcfc; display: block; margin-bottom: 8px; }
         textarea { height: 80px; resize: vertical; }
@@ -110,8 +114,7 @@
         .details-body { padding: 20px; border-top: 1px solid #eee; }
 
         .schedule-row-inputs { display: flex; gap: 5px; align-items: center; }
-        .schedule-row-inputs input { margin-bottom: 0; font-size: 13px; }
-
+        
         .color-row { display: flex; gap: 15px; justify-content: center; margin: 15px 0; flex-wrap: wrap;}
         .color-circle { width: 35px; height: 35px; border-radius: 50%; border: 3px solid #eee; cursor: pointer; transition: 0.2s; }
         .color-circle.active { border-color: #333; transform: scale(1.1); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
@@ -121,11 +124,8 @@
         .btn-print { background: var(--primary); position: sticky; bottom: 10px; z-index: 200; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
 
         /* --- داخل PDF --- */
-        .cover-page { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; border: 5px double var(--primary); background-color: var(--cover-bg); text-align: center; margin-bottom: 0; flex: 1; }
-        .page-title { border-bottom: 3px solid var(--primary); padding-bottom: 10px; margin-bottom: 30px; text-align: center; color: var(--primary); }
-        .styled-list { list-style: none; padding: 0; }
-        .styled-list li { margin-bottom: 12px; padding-right: 25px; position: relative; line-height: 1.6; }
-        .styled-list li::before { content: '✔'; position: absolute; right: 0; color: var(--secondary); }
+        .cover-page { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; border: 5px double var(--primary); background-color: var(--cover-bg); text-align: center; flex: 1; }
+        .page-title { border-bottom: 3px solid var(--primary); padding-bottom: 10px; margin-bottom: 30px; text-align: center; color: var(--primary); font-size: 26px; }
         
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
         th, td { border: 1px solid #444; padding: 8px; text-align: center; font-size: 12px; word-wrap: break-word; }
@@ -134,35 +134,23 @@
         .tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; text-align: center; }
         .tool-item { border: 1px solid #ccc; padding: 20px; border-radius: 10px; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
-        /* تنسيق صفحة البيانات الجديدة */
-        .info-card {
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            padding: 30px;
-            margin-top: 20px;
-        }
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px 0;
-            border-bottom: 1px solid #ddd;
-            font-size: 18px;
-        }
+        .info-card { background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 10px; padding: 30px; margin-top: 20px; }
+        .info-row { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #ddd; font-size: 18px; }
         .info-row:last-child { border-bottom: none; }
         .info-label { font-weight: bold; color: var(--primary); }
         .info-value { color: var(--secondary); font-weight: bold; }
 
-        /* توسيط الصفحات الخاصة (الفاصلة والنهاية) */
-        .center-page-content {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex: 1; /* يأخذ كامل ارتفاع الورقة المتبقي */
-            height: 100%;
-            text-align: center;
+        .center-page-content { display: flex; justify-content: center; align-items: center; flex: 1; height: 100%; text-align: center; }
+
+        /* التجاوب */
+        @media (max-width: 1100px) {
+            .app-container { flex-direction: column; }
+            .editor-sidebar { width: 100%; height: auto; position: relative; border-left: none; padding-bottom: 60px; }
+            .preview-area { width: 100%; margin-right: 0; padding: 10px; overflow-x: auto; }
+            .sheet { transform: scale(0.9); transform-origin: top center; margin-bottom: 10px; }
         }
 
+        /* الطباعة */
         @media print {
             .editor-sidebar { display: none; }
             .preview-area { margin: 0; padding: 0; width: 100%; background: white; }
@@ -197,49 +185,31 @@
 
         <details open><summary>📝 البيانات الأساسية</summary>
             <div class="details-body">
-                <label>عنوان البرنامج</label>
-                <input type="text" id="inTitle" placeholder="مثلاً: مهارات القيادة" oninput="render()">
-                
-                <label>اسم المدرب</label>
-                <input type="text" id="inTrainer" oninput="render()">
-                
-                <label>العام التدريبي</label>
-                <input type="text" id="inYear" value="2026" oninput="render()">
-
+                <label>عنوان البرنامج</label><input type="text" id="inTitle" oninput="render()">
+                <label>اسم المدرب</label><input type="text" id="inTrainer" oninput="render()">
+                <label>العام التدريبي</label><input type="text" id="inYear" value="2026" oninput="render()">
                 <hr style="margin:15px 0;">
                 <div style="display:flex; gap:10px;">
-                    <div style="flex:1">
-                        <label>عدد الأيام</label>
-                        <input type="text" id="inDays" placeholder="مثلاً: 3 أيام" oninput="render()">
-                    </div>
-                    <div style="flex:1">
-                        <label>عدد الساعات</label>
-                        <input type="text" id="inHours" placeholder="مثلاً: 15 ساعة" oninput="render()">
-                    </div>
+                    <div style="flex:1"><label>عدد الأيام</label><input type="text" id="inDays" oninput="render()"></div>
+                    <div style="flex:1"><label>عدد الساعات</label><input type="text" id="inHours" oninput="render()"></div>
                 </div>
-                <label>المستهدفون</label>
-                <input type="text" id="inAudience" placeholder="مثلاً: المعلمون، المدراء..." oninput="render()">
+                <label>المستهدفون</label><input type="text" id="inAudience" oninput="render()">
             </div>
         </details>
 
         <details><summary>📄 المقدمة والإرشادات</summary>
             <div class="details-body">
-                <label>مقدمة الحقيبة</label>
-                <textarea id="inIntro" oninput="render()"></textarea>
+                <label>مقدمة الحقيبة</label><textarea id="inIntro" oninput="render()"></textarea>
                 <hr style="margin:20px 0; border:0; border-top:1px dashed #ccc;">
-                <label>إرشادات المدرب</label>
-                <textarea id="inTrainerGuide" oninput="render()"></textarea>
-                <label>إرشادات المتدرب</label>
-                <textarea id="inTraineeGuide" oninput="render()"></textarea>
+                <label>إرشادات المدرب</label><textarea id="inTrainerGuide" oninput="render()"></textarea>
+                <label>إرشادات المتدرب</label><textarea id="inTraineeGuide" oninput="render()"></textarea>
             </div>
         </details>
 
         <details><summary>🎯 الأهداف</summary>
             <div class="details-body">
-                <label>الهدف العام</label>
-                <textarea id="inMainGoal" oninput="render()" style="height:60px"></textarea>
-                <label>الأهداف التفصيلية</label>
-                <textarea id="inSubGoals" oninput="render()"></textarea>
+                <label>الهدف العام</label><textarea id="inMainGoal" oninput="render()" style="height:60px"></textarea>
+                <label>الأهداف التفصيلية</label><textarea id="inSubGoals" oninput="render()"></textarea>
             </div>
         </details>
 
@@ -259,8 +229,7 @@
                     <label><input type="checkbox" id="t7" onchange="render()"> نظام صوتي</label>
                 </div>
                 <div style="margin-top:15px; padding-top:15px; border-top:1px dashed #ccc;">
-                    <label>أخرى:</label>
-                    <input type="text" id="tOther" placeholder="أداة إضافية..." oninput="render()">
+                    <label>أخرى:</label><input type="text" id="tOther" oninput="render()">
                 </div>
             </div>
         </details>
@@ -294,18 +263,18 @@
 
             <div class="sheet">
                 <h2 class="page-title">مقدمة البرنامج</h2>
-                <div id="outIntro" style="text-align:justify; line-height:2; font-size:16px;">...</div>
+                <div id="outIntro" class="justified-text">...</div>
             </div>
 
             <div class="sheet">
-                <h2 class="page-title">إرشادات هامة</h2>
-                
-                <h3 style="color:var(--primary)">👨‍🏫 إرشادات للمدرب:</h3>
+                <h2 class="page-title">👨‍🏫 إرشادات للمدرب</h2>
+                <p>لضمان نجاح البرنامج التدريبي، يرجى اتباع الآتي:</p>
                 <ul class="styled-list" id="outTrainerGuide"></ul>
-                
-                <hr style="margin:30px 0; border-top:1px dashed #ccc">
+            </div>
 
-                <h3 style="color:var(--accent)">👥 إرشادات للمتدربين:</h3>
+            <div class="sheet">
+                <h2 class="page-title">👥 إرشادات للمتدربين</h2>
+                <p>عزيزي المشارك، لتحقيق الاستفادة القصوى:</p>
                 <ul class="styled-list" id="outTraineeGuide"></ul>
             </div>
 
@@ -313,27 +282,18 @@
                 <h2 class="page-title">أهداف البرنامج</h2>
                 <div style="background:#fcfcfc; padding:25px; border-right:6px solid var(--primary); margin-bottom:40px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                     <h3 style="margin:0; color:var(--primary); font-size:20px;">🎯 الهدف العام:</h3>
-                    <p id="outMainGoal" style="margin-top:15px; font-size:16px; line-height:1.6;">...</p>
+                    <p id="outMainGoal" class="justified-text" style="margin-top:15px;">...</p>
                 </div>
                 <h3 style="font-size:22px;">الأهداف التفصيلية:</h3>
-                <ul class="styled-list" id="outSubGoals" style="font-size:16px;"></ul>
+                <ul class="styled-list" id="outSubGoals"></ul>
             </div>
 
             <div class="sheet">
                 <h2 class="page-title">بيانات البرنامج التدريبي</h2>
                 <div class="info-card">
-                    <div class="info-row">
-                        <span class="info-label">📅 عدد الأيام التدريبية:</span>
-                        <span class="info-value" id="outDays">...</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">⏳ عدد الساعات التدريبية:</span>
-                        <span class="info-value" id="outHours">...</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">👥 الفئة المستهدفة:</span>
-                        <span class="info-value" id="outAudience">...</span>
-                    </div>
+                    <div class="info-row"><span class="info-label">📅 عدد الأيام التدريبية:</span><span class="info-value" id="outDays">...</span></div>
+                    <div class="info-row"><span class="info-label">⏳ عدد الساعات التدريبية:</span><span class="info-value" id="outHours">...</span></div>
+                    <div class="info-row"><span class="info-label">👥 الفئة المستهدفة:</span><span class="info-value" id="outAudience">...</span></div>
                 </div>
                 <div style="margin-top:50px; text-align:center; opacity:0.6;">
                     <i class="fas fa-users-rectangle" style="font-size:120px; color:var(--primary);"></i>
@@ -361,10 +321,10 @@
             <div class="sheet">
                 <h2 class="page-title">الخاتمة والمراجع</h2>
                 <h3>الخاتمة:</h3>
-                <div id="outConc" style="text-align:justify; line-height:1.8;">...</div>
+                <div id="outConc" class="justified-text">...</div>
                 <hr style="margin:50px 0; border-top:1px solid #eee;">
                 <h3>المراجع:</h3>
-                <div id="outRef">...</div>
+                <div id="outRef" class="justified-text">...</div>
             </div>
 
             <div class="sheet">
@@ -427,8 +387,8 @@
             </div>
             <div style="border:1px solid #ddd; border-top:none; padding:15px; background:white; border-radius:0 0 6px 6px;">
                 <input class="u-title" placeholder="عنوان الوحدة" oninput="render()">
-                <textarea class="u-cont" placeholder="المحتوى العلمي (تفاصيل الوحدة)" oninput="render()"></textarea>
-                <textarea class="u-act" placeholder="النشاط التدريبي المقترح" oninput="render()"></textarea>
+                <textarea class="u-cont" placeholder="المحتوى العلمي" oninput="render()"></textarea>
+                <textarea class="u-act" placeholder="النشاط التدريبي" oninput="render()"></textarea>
                 <textarea class="u-eval" placeholder="طريقة التقييم" oninput="render()"></textarea>
             </div>
         `;
@@ -441,19 +401,21 @@
         setId('outTrainer', 'inTrainer', '---');
         setId('outYear', 'inYear', '---');
         setHtml('outIntro', 'inIntro');
+        
+        // فصل الإرشادات
         setList('outTrainerGuide', 'inTrainerGuide');
         setList('outTraineeGuide', 'inTraineeGuide');
+        
         setHtml('outMainGoal', 'inMainGoal');
         setList('outSubGoals', 'inSubGoals');
         
-        // البيانات الجديدة
         setId('outDays', 'inDays', '---');
         setId('outHours', 'inHours', '---');
         setId('outAudience', 'inAudience', '---');
-
         setHtml('outConc', 'inConc');
         setHtml('outRef', 'inRef');
 
+        // الجداول
         let schHtml = '';
         for(let d=1; d<=5; d++) {
             schHtml += `<div class="sheet"><h2 class="page-title">اليوم التدريبي: ${d}</h2>
@@ -474,6 +436,7 @@
         }
         document.getElementById('outSchedule').innerHTML = schHtml;
 
+        // الوحدات
         let uHtml = '';
         document.querySelectorAll('#units-container > div').forEach(div => {
             let t = div.querySelector('.u-title').value || 'وحدة';
@@ -481,13 +444,14 @@
             let a = div.querySelector('.u-act').value.replace(/\n/g, '<br>');
             let e = div.querySelector('.u-eval').value.replace(/\n/g, '<br>');
             uHtml += `<div class="sheet"><h2 class="page-title">${t}</h2>
-                <h4>المحتوى:</h4><p style="text-align:justify">${c}</p>
-                <div style="background:#f4f4f4; padding:15px; border:1px dashed #999; margin:15px 0; border-radius:5px;"><b>نشاط مقترح:</b><br>${a}</div>
-                <div style="color:#d35400"><b>التقييم:</b><br>${e}</div>
+                <h4>المحتوى:</h4><div class="justified-text">${c}</div>
+                <div style="background:#f4f4f4; padding:15px; border:1px dashed #999; margin:15px 0; border-radius:5px;"><b>نشاط مقترح:</b><br><div class="justified-text">${a}</div></div>
+                <div style="color:#d35400"><b>التقييم:</b><br><div class="justified-text">${e}</div></div>
             </div>`;
         });
         document.getElementById('outUnits').innerHTML = uHtml;
 
+        // الأدوات
         const icons = [
             {id:'t1', i:'fa-scroll', t:'سبورة ورقية'}, {id:'t2', i:'fa-chalkboard-user', t:'سبورة ذكية'},
             {id:'t3', i:'fa-pen-nib', t:'أقلام'}, {id:'t4', i:'fa-note-sticky', t:'ملصقات'},
@@ -511,27 +475,35 @@
         document.getElementById(o).innerHTML = v ? v.split('\n').map(x=>`<li>${x}</li>`).join('') : '';
     }
 
+    // --- الوظيفة الجديدة كلياً للطباعة ---
     function printPDF() {
         const btn = document.getElementById('printBtn');
-        btn.innerHTML = 'جاري التجهيز...';
+        const originalText = btn.innerHTML;
+        btn.innerHTML = 'جاري المعالجة...';
+        btn.disabled = true;
         
-        const element = document.getElementById('pdf-root').cloneNode(true);
-        element.style.width = '210mm';
-        element.style.padding = '0';
-        element.style.margin = '0';
+        // 1. إنشاء حاوية مؤقتة للطباعة
+        const printContainer = document.createElement('div');
+        printContainer.style.position = 'absolute';
+        printContainer.style.left = '-9999px'; // إخفاء عن العين
+        printContainer.style.top = '0';
+        printContainer.style.width = '210mm'; // فرض عرض A4
         
-        const sheets = element.querySelectorAll('.sheet');
+        // 2. نسخ المحتوى
+        const content = document.getElementById('pdf-root').cloneNode(true);
+        printContainer.appendChild(content);
+        document.body.appendChild(printContainer);
+
+        // 3. إعادة ضبط تنسيقات النسخة المطبوعة لضمان الظهور
+        const sheets = printContainer.querySelectorAll('.sheet');
         sheets.forEach(sheet => {
-            sheet.style.transform = 'none'; 
+            sheet.style.transform = 'none';
             sheet.style.margin = '0';
-            sheet.style.marginBottom = '0';
+            sheet.style.marginBottom = '0'; // إزالة المسافات بين الصفحات في الـ PDF
             sheet.style.pageBreakAfter = 'always';
-            // ضمان ملء الصفحة للتوسيط
-            if(sheet.querySelector('.center-page-content')) {
-                sheet.style.height = '297mm'; 
-            }
         });
 
+        // 4. إعدادات html2pdf
         const opt = {
             margin: 0,
             filename: 'الحقيبة_التدريبية.pdf',
@@ -540,9 +512,15 @@
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        html2pdf().from(element).set(opt).save().then(() => {
-            btn.innerHTML = '📥 حفظ كملف PDF جاهز للطباعة';
-        });
+        // 5. التنفيذ مع تأخير بسيط لضمان الرسم
+        setTimeout(() => {
+            html2pdf().from(content).set(opt).save().then(() => {
+                // تنظيف
+                document.body.removeChild(printContainer);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }, 1000);
     }
 </script>
 
