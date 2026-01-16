@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منشئ الحقائب الاحترافي - PDF & Word</title>
+    <title>منشئ الحقائب الاحترافي - أيام ديناميكية</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,7 +15,7 @@
             --accent: #d35400;
             --bg: #eef2f3;
             --cover-bg: #ffffff;
-            --sidebar-width: 500px;
+            --sidebar-width: 550px;
         }
 
         * { box-sizing: border-box; }
@@ -33,7 +33,7 @@
             min-height: 100vh;
         }
 
-        /* --- القائمة الجانبية (لا تظهر في الطباعة) --- */
+        /* --- القائمة الجانبية --- */
         .editor-sidebar {
             width: var(--sidebar-width);
             background: white;
@@ -65,13 +65,13 @@
             background: white;
             width: 210mm;
             min-height: 297mm;
-            padding: 20mm; /* هامش داخلي للورقة */
+            padding: 20mm;
             margin-bottom: 30px;
             box-shadow: 0 0 15px rgba(0,0,0,0.3);
             position: relative;
             display: flex;
             flex-direction: column;
-            page-break-after: always; /* أمر فاصل صفحات */
+            page-break-after: always;
         }
 
         /* --- التنسيقات --- */
@@ -110,7 +110,6 @@
         .color-circle { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #ddd; cursor: pointer; }
         .color-circle.active { border-color: #333; transform: scale(1.1); }
 
-        /* --- قواعد الطباعة الصارمة (لحل مشكلة الصفحات البيضاء) --- */
         @media print {
             body { background: white; }
             .editor-sidebar { display: none !important; }
@@ -118,14 +117,12 @@
             .sheet { 
                 box-shadow: none; margin: 0; border: none; width: 100%; 
                 page-break-after: always; page-break-inside: avoid;
-                min-height: auto; /* مهم للطباعة */
+                min-height: auto; 
             }
             .app-container { display: block; }
-            /* إخفاء الأزرار عند الطباعة */
             .btn-row, button { display: none; }
         }
 
-        /* التجاوب */
         @media (max-width: 1000px) {
             .app-container { flex-direction: column; }
             .editor-sidebar { width: 100%; height: auto; position: relative; }
@@ -163,9 +160,16 @@
                 <label>العنوان</label><input type="text" id="inTitle" oninput="render()">
                 <label>المدرب</label><input type="text" id="inTrainer" oninput="render()">
                 <label>العام</label><input type="text" id="inYear" value="2026" oninput="render()">
-                <div style="display:flex; gap:5px">
-                    <div><label>الأيام</label><input id="inDays" oninput="render()"></div>
-                    <div><label>الساعات</label><input id="inHours" oninput="render()"></div>
+                <hr>
+                <div style="display:flex; gap:5px; align-items:flex-end;">
+                    <div style="flex:1">
+                        <label>عدد الأيام (الجدول)</label>
+                        <input type="number" id="inDays" value="3" min="1" max="15" onchange="updateDays()" oninput="render()">
+                    </div>
+                    <div style="flex:1">
+                        <label>عدد الساعات</label>
+                        <input type="text" id="inHours" oninput="render()">
+                    </div>
                 </div>
                 <label>المستهدفون</label><input id="inAudience" oninput="render()">
             </div>
@@ -186,8 +190,9 @@
             </div>
         </details>
 
-        <details><summary>الجدول الزمني</summary>
-            <div class="details-body" id="schedule-inputs"></div>
+        <details><summary>الجدول الزمني (ديناميكي)</summary>
+            <div class="details-body" id="schedule-inputs">
+                </div>
         </details>
 
         <details><summary>المعينات</summary>
@@ -302,8 +307,12 @@
 </div>
 
 <script>
+    // متغير لتخزين عدد الأيام الحالي
+    let currentDayCount = 3;
+
     window.onload = function() {
-        buildScheduleInputs();
+        // تهيئة الجدول بناء على القيمة الافتراضية
+        updateDays();
         addUnit();
         render();
     };
@@ -314,9 +323,43 @@
         el.classList.add('active');
     }
 
-    function buildScheduleInputs() {
+    // دالة لتحديث عدد الأيام
+    function updateDays() {
+        const input = document.getElementById('inDays');
+        let newCount = parseInt(input.value);
+        if(newCount < 1) newCount = 1;
+        if(newCount > 30) newCount = 30; // حد أقصى للحماية
+
+        // 1. حفظ البيانات الموجودة حالياً حتى لا تضيع عند إعادة البناء
+        const savedData = {};
+        const inputs = document.querySelectorAll('#schedule-inputs input');
+        inputs.forEach(inp => {
+            savedData[inp.className] = inp.value;
+        });
+
+        currentDayCount = newCount;
+        
+        // 2. إعادة بناء خانات الإدخال
+        buildScheduleInputs(currentDayCount);
+
+        // 3. استرجاع البيانات المحفوظة للخانات التي لا تزال موجودة
+        const newInputs = document.querySelectorAll('#schedule-inputs input');
+        newInputs.forEach(inp => {
+            if(savedData[inp.className]) {
+                inp.value = savedData[inp.className];
+            }
+        });
+
+        // 4. تحديث العرض
+        render();
+    }
+
+    // دالة بناء خانات الإدخال (ديناميكية)
+    function buildScheduleInputs(days) {
         const container = document.getElementById('schedule-inputs');
-        for(let d=1; d<=5; d++) {
+        container.innerHTML = ''; // مسح القديم
+
+        for(let d=1; d<=days; d++) {
             let html = `<div style="background:#f4f4f4; padding:10px; margin-bottom:10px;">
                 <b>اليوم ${d}</b>`;
             for(let s=1; s<=2; s++) {
@@ -375,9 +418,9 @@
         setList('outTraineeGuide', 'inTraineeGuide');
         setList('outSubGoals', 'inSubGoals');
 
-        // الجداول
+        // الجداول (تعتمد على المتغير الديناميكي currentDayCount)
         let schHtml = '';
-        for(let d=1; d<=5; d++) {
+        for(let d=1; d<=currentDayCount; d++) {
             schHtml += `<div class="sheet"><h2 class="page-title">اليوم التدريبي: ${d}</h2>
             <table><thead><tr><th width="35%">الموضوع</th><th>الأسلوب</th><th>الأداة</th><th width="10%">زمن</th></tr></thead><tbody>`;
             for(let s=1; s<=2; s++) {
@@ -433,16 +476,13 @@
         document.getElementById(o).innerHTML = v ? v.split('\n').map(x=>`<li>${x}</li>`).join('') : '';
     }
 
-    // --- تصدير Word ---
     function exportToWord() {
         var header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
              "xmlns:w='urn:schemas-microsoft-com:office:word' "+
              "xmlns='http://www.w3.org/TR/REC-html40'>"+
-             "<head><meta charset='utf-8'><title>Export HTML to Word Document with JavaScript</title></head><body>";
-        
+             "<head><meta charset='utf-8'><title>Training Bag</title></head><body>";
         var footer = "</body></html>";
         var sourceHTML = header + document.getElementById("word-content").innerHTML + footer;
-        
         var source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
         var fileDownload = document.createElement("a");
         document.body.appendChild(fileDownload);
